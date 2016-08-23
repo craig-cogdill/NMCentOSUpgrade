@@ -1,0 +1,52 @@
+# Kickstart file to install LogRhythm Network Monitor from USB
+
+install
+auth --enableshadow --passalgo=sha512
+lang en_US.UTF-8
+# Use graphical install
+text
+# Run the Setup Agent on first boot
+firstboot --enable
+ignoredisk --only-use=sda,sdb
+# Keyboard layouts
+keyboard --vckeymap=us --xlayouts='us'
+rootpw --lock
+user --name=logrhythm --groups=wheel --password=$6$F2cvCvNiGJeaBEXO$g9oMYmWsRnO1.OsmWOq25Wl.Q9kWMbnfzzZcRlt3vD2X451tdAjG2ylahp8QWLKx7OP6u3h6hjEBu2TFr42lV. --iscrypted
+# Firewall configuration
+firewall --enabled --port=https:tcp --service=ssh,http
+reboot
+selinux --enforcing
+
+# System services
+services --disabled="chronyd"
+services --disabled=NetworkManager --enable=network
+# # System timezone
+timezone --utc America/Denver --nontp
+# System bootloader configuration
+bootloader --append=" crashkernel=auto" --location=mbr --boot-drive=sda
+# Partition clearing information
+clearpart --initlabel --list=sda2
+# Disk partitioning information
+part /boot --fstype=ext4 --size=500
+part pv.507 --fstype="lvmpv" --ondisk=sda --size=250000
+part pv.40 --fstype="lvmpv" --noformat --onpart=sdb1
+volgroup nm_root --pesize=4096 pv.507
+volgroup vg_probe01 --useexisting --noformat
+logvol /home  --fstype="ext4" --size=50000 --name=home --vgname=nm_root
+logvol /  --fstype="ext4" --size=160000 --name=root --vgname=nm_root
+logvol swap  --fstype="swap" --size=32000 --name=swap --vgname=nm_root
+logvol /usr/local  --fstype="ext4" --useexisting --noformat --name=lv_data --vgname=vg_probe01
+logvol /pcap0 --fstype="ext4" --useexisting --noformat --name=lv_pcap --vgname=vg_probe01
+
+
+%packages --nobase
+@^minimal
+@core
+kexec-tools
+masterProbe
+%end
+
+%addon com_redhat_kdump --enable --reserve-mb='auto'
+
+%end
+
