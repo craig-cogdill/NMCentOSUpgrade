@@ -53,14 +53,89 @@ It is possible to boot an iso image from a physical partition using grub2. To up
 
   * Add sdaDiskPart to initrd:
 <pre><code>
-    \\\# partition table of /dev/sda
+    \# partition table of /dev/sda
     unit: sectors
 
     /dev/sda1 : start=     2048, size=  1024000, Id=83, bootable
     /dev/sda2 : start=  1026048, size=114483200, Id=8e
     /dev/sda3 : start=115509248, size= 10240000, Id=83
     /dev/sda4 : start=        0, size=        0, Id= 0
-</code><pre>
+</code></pre>
+
+#### Modify the init script
+  * Add the following to the init script just after the `rdbreak=initqueue`:
+<pre><code>
+    [ -x /bin/plymouth ] && /bin/plymouth --hide-splash
+    echo
+    echo
+    echo Nuclear Option - reformat sda drive
+    sleep 3
+    \# Delete any remnants of the root physical volume with its volume group and logical volumes.
+    echo Delete the root physical volume
+    echo
+    echo
+    /sbin/lvm pvremove -ff -y /dev/sda2
+    /bin/dd if=/dev/zero of=/dev/sda2 count=1k bs=16k
+    sleep 1
+    
+    \# Format the sda drive with new partitions
+    /sbin/sfdisk --force /dev/sda < /sdaDiskPart
+    sleep 1
+    \# reload the new disk partitioning into the kernel
+    /sbin/hdparm -z /dev/sda
+    sleep 1
+    /sbin/mkfs.ext2 /dev/sda3
+    echo sda drive reformated
+    echo
+    echo
+    ls -lh /dev/sda\*
+    echo
+    echo
+    sleep 2
+</code></pre>
+
+  * Add the following to the init script just after the `source_all pre-mount`:
+<pre><code>
+    echo
+    echo
+    echo Copy iso image to new sda3 partition ...
+    echo
+    echo
+    mkdir /usrlocal
+    mount /dev/mapper/vg_probe01-lv_data /usrlocal
+    mkdir /lrup
+    mount /dev/sda3 /lrup
+    
+    cp /usrlocal/iso/nm_install* /lrup/
+    
+    echo Waiting for unmount of lrup partition.
+    until umount /lrup
+    do
+       echo Waiting for unmount of lrup partition.
+       sleep 1
+    done
+    echo
+    echo
+    echo iso image copied to sda3 partition
+    echo
+    echo
+    
+    \# The third grub boot menu option is to install from the iso file in sda3
+    echo Change grub to boot the third menu option on next boot
+    mkdir /boot
+    mount /dev/sda1 /boot
+    sed -i -e "s/next_entry=.*$/next_entry=3/g" /boot/grub/grubenv
+    echo Waiting for unmount of boot partition
+    until umount /boot
+    do
+       echo Waiting for unmount of boot partition
+       sleep 1
+    done
+    sleep 2
+    \# Reboot the system
+    echo b > /proc/sysrq-trigger
+</code></pre>
+
 
 #### Add necessary tools to initrd directory
 
