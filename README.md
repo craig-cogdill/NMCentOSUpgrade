@@ -53,7 +53,7 @@ It is possible to boot an iso image from a physical partition using grub2. To up
 
   * Add sdaDiskPart to initrd:
 <pre><code>
-    \# partition table of /dev/sda
+    # partition table of /dev/sda
     unit: sectors
 
     /dev/sda1 : start=     2048, size=  1024000, Id=83, bootable
@@ -70,7 +70,7 @@ It is possible to boot an iso image from a physical partition using grub2. To up
     echo
     echo Nuclear Option - reformat sda drive
     sleep 3
-    \# Delete any remnants of the root physical volume with its volume group and logical volumes.
+    # Delete any remnants of the root physical volume with its volume group and logical volumes.
     echo Delete the root physical volume
     echo
     echo
@@ -78,10 +78,10 @@ It is possible to boot an iso image from a physical partition using grub2. To up
     /bin/dd if=/dev/zero of=/dev/sda2 count=1k bs=16k
     sleep 1
     
-    \# Format the sda drive with new partitions
+    # Format the sda drive with new partitions
     /sbin/sfdisk --force /dev/sda < /sdaDiskPart
     sleep 1
-    \# reload the new disk partitioning into the kernel
+    # reload the new disk partitioning into the kernel
     /sbin/hdparm -z /dev/sda
     sleep 1
     /sbin/mkfs.ext2 /dev/sda3
@@ -120,7 +120,7 @@ It is possible to boot an iso image from a physical partition using grub2. To up
     echo
     echo
     
-    \# The third grub boot menu option is to install from the iso file in sda3
+    # The third grub boot menu option is to install from the iso file in sda3
     echo Change grub to boot the third menu option on next boot
     mkdir /boot
     mount /dev/sda1 /boot
@@ -132,7 +132,7 @@ It is possible to boot an iso image from a physical partition using grub2. To up
        sleep 1
     done
     sleep 2
-    \# Reboot the system
+    # Reboot the system
     echo b > /proc/sysrq-trigger
 </code></pre>
 
