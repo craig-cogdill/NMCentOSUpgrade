@@ -49,15 +49,11 @@ It is possible to boot an iso image from a physical partition using grub2. To up
   * `cd initrd`
   * `gunzip -c /boot/initramfs-2.6.32-573.7.1.el6.x86_64.img | cpio -i –make-directories`
 
-#### Creating a new initrd-nuclear.img
-  * `find ./ | cpio -H newc -o >/tmp/initrd-cpio`
-  * `gzip -c /tmp/initrd.cpio > /boot/initrd-nuclear.img`
-
 #### Modify the contents of the initrd directory
 
   * Add sdaDiskPart to initrd:
 <pre><code>
-    # partition table of /dev/sda
+    \\\# partition table of /dev/sda
     unit: sectors
 
     /dev/sda1 : start=     2048, size=  1024000, Id=83, bootable
@@ -75,3 +71,9 @@ It is possible to boot an iso image from a physical partition using grub2. To up
   * `cp -a /lib64/libe2p.so.2* lib64/`
   * `yum install hdparm-9.43-4.el6.x86_64`
   * `cp /sbin/hdparm sbin/`
+
+#### Creating a new initrd-nuclear.img
+  * From the initrd directory:
+  * `find ./ | cpio -H newc -o >/tmp/initrd-cpio`
+  * `gzip -c /tmp/initrd.cpio > /boot/initrd-nuclear.img`
+
