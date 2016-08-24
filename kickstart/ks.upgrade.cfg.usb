@@ -3,7 +3,7 @@
 install
 auth --enableshadow --passalgo=sha512
 lang en_US.UTF-8
-# Use graphical install
+# Don't use graphical install
 text
 # Run the Setup Agent on first boot
 firstboot --enable
@@ -24,19 +24,33 @@ services --disabled=NetworkManager --enable=network
 timezone --utc America/Denver --nontp
 # System bootloader configuration
 bootloader --append=" crashkernel=auto" --location=mbr --boot-drive=sda
-# Partition clearing information
-clearpart --initlabel --list=sda2
-# Disk partitioning information
-part /boot --fstype=ext4 --size=500
-part pv.507 --fstype="lvmpv" --ondisk=sda --size=250000
-part pv.40 --fstype="lvmpv" --noformat --onpart=sdb1
-volgroup nm_root --pesize=4096 pv.507
-volgroup vg_probe01 --useexisting --noformat
-logvol /home  --fstype="ext4" --size=50000 --name=home --vgname=nm_root
-logvol /  --fstype="ext4" --size=160000 --name=root --vgname=nm_root
-logvol swap  --fstype="swap" --size=32000 --name=swap --vgname=nm_root
+# Disk partitioning information for VM
+#clearpart --initlabel --list=sda2,sda1
+## Disk partitioning information
+#part pv.607 --fstype="lvmpv" --ondisk=sda --size=1 --grow
+#part /boot --fstype="ext4" --size=500
+#part pv.26 --fstype="lvmpv" --noformat --onpart=sdb1
+#volgroup nm_root --pesize=4096 pv.607
+#volgroup nm_data --noformat --useexisting
+#logvol swap  --fstype="swap" --recommended --name=swap --vgname=nm_root
+#logvol /  --fstype="ext4" --grow --maxsize=167996 --size=25600 --label="root" --name=root --vgname=nm_root
+#logvol /home  --fstype="ext4" --size=26200 --label="home" --name=home --vgname=nm_root
+#logvol /pcap0  --fstype="ext4" --noformat --useexisting --name=pcap0 --vgname=nm_data
+#logvol /usr/local  --fstype="ext4" --noformat --useexisting --name=usr_local --vgname=nm_data
+
+# Partition clearing information for hardware
+clearpart --initlabel --list=sda2,sda1
+# Disk partitioning information for hardware
+part /boot --fstype="ext4" --size=500
+part pv.607 --fstype="lvmpv" --ondisk=sda --size=1 --grow
+part pv.26 --fstype="lvmpv" --noformat --onpart=sdb1
+volgroup nm_root --pesize=4096 pv.607
+volgroup vg_probe01 --noformat --useexisting
+logvol swap  --fstype="swap" --recommended --name=swap --vgname=nm_root
+logvol /  --fstype="ext4" --grow --maxsize=167996 --size=100000 --label="root" --name=root --vgname=nm_root
+logvol /home  --fstype="ext4" --size=50000 --label="home" --name=home --vgname=nm_root
+logvol /pcap0  --fstype="ext4" --noformat --useexisting --name=lv_pcap --vgname=vg_probe01
 logvol /usr/local  --fstype="ext4" --useexisting --noformat --name=lv_data --vgname=vg_probe01
-logvol /pcap0 --fstype="ext4" --useexisting --noformat --name=lv_pcap --vgname=vg_probe01
 
 
 %packages --nobase
