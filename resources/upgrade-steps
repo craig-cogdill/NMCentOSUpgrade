@@ -1,0 +1,12 @@
+
+rpm -Uvh --force grub-2.02.beta3-1.el6.x86_64.rpm
+grub-install /dev/sda
+rm /boot/grub/grub.conf
+grub-mkconfig -o /boot/grub/grub.cfg
+cp initrd-nuclear.img /boot/
+mkdir -p /usr/local/iso
+mv nm_install_3.2.1.108.iso.usb /usr/local/iso/
+cat 40_custom_mods >> /usr/local/etc/grub.d/40_custom
+grub-mkconfig -o /boot/grub/grub.cfg
+grub-reboot 2
+reboot
