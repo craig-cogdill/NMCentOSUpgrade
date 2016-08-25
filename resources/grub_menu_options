@@ -1,0 +1,18 @@
+
+menuentry 'Reformat sda drive ...' --class gnu-linux --class gnu --class os {
+  echo 'Loading Linux 2.6.32-573.7.1.el6.x86_64 ...'
+  set root=(hd0,1)
+  linux /vmlinuz-2.6.32-573.7.1.el6.x86_64 root=/dev/mapper/vg_probe01-lv_data rw
+  echo 'Loading initial ramdisk ...'
+  initrd /initrd-nuclear.img
+}
+
+menuentry "Install NetMon 3.2.1" {
+  echo    'Loading Linux from isofile ...'
+  set isofile=/nm_install_3.2.1.108.iso.usb
+  loopback loop (hd0,3)$isofile
+  search --no-floppy --set=root -l 'NetMon_3.2.1.108'
+  linux (loop)/isolinux/vmlinuz boot=isolinux iso-scan/filename=$isofile inst.stage2=hd:LABEL=NetMon_3.2.1.108 inst.ks=hd:LABEL=NetMon_3.2.1.108:/ks/ks.dynamic.cfg ro rd.live.image rd.luks=0 rd.md=0 rd.dm=0 text
+  initrd (loop)/isolinux/initrd.img
+}
+

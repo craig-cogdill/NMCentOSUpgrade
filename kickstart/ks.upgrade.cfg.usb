@@ -26,7 +26,7 @@ timezone --utc America/Denver --nontp
 bootloader --append=" crashkernel=auto" --location=mbr --boot-drive=sda
 # Disk partitioning information for VM
 #clearpart --initlabel --list=sda2,sda1
-## Disk partitioning information
+# Disk partitioning information
 #part pv.607 --fstype="lvmpv" --ondisk=sda --size=1 --grow
 #part /boot --fstype="ext4" --size=500
 #part pv.26 --fstype="lvmpv" --noformat --onpart=sdb1
