@@ -24,19 +24,6 @@ services --disabled=NetworkManager --enable=network
 timezone --utc America/Denver --nontp
 # System bootloader configuration
 bootloader --append=" crashkernel=auto" --location=mbr --boot-drive=sda
-# Disk partitioning information for VM
-#clearpart --initlabel --list=sda2,sda1
-# Disk partitioning information
-#part pv.607 --fstype="lvmpv" --ondisk=sda --size=1 --grow
-#part /boot --fstype="ext4" --size=500
-#part pv.26 --fstype="lvmpv" --noformat --onpart=sdb1
-#volgroup nm_root --pesize=4096 pv.607
-#volgroup nm_data --noformat --useexisting
-#logvol swap  --fstype="swap" --recommended --name=swap --vgname=nm_root
-#logvol /  --fstype="ext4" --grow --maxsize=167996 --size=25600 --label="root" --name=root --vgname=nm_root
-#logvol /home  --fstype="ext4" --size=26200 --label="home" --name=home --vgname=nm_root
-#logvol /pcap0  --fstype="ext4" --noformat --useexisting --name=pcap0 --vgname=nm_data
-#logvol /usr/local  --fstype="ext4" --noformat --useexisting --name=usr_local --vgname=nm_data
 
 # Partition clearing information for hardware
 clearpart --initlabel --list=sda2,sda1
@@ -51,7 +38,6 @@ logvol /  --fstype="ext4" --grow --maxsize=167996 --size=100000 --label="root" -
 logvol /home  --fstype="ext4" --size=50000 --label="home" --name=home --vgname=nm_root
 logvol /pcap0  --fstype="ext4" --noformat --useexisting --name=lv_pcap --vgname=vg_probe01
 logvol /usr/local  --fstype="ext4" --useexisting --noformat --name=lv_data --vgname=vg_probe01
-
 
 %packages --nobase
 @^minimal

@@ -152,3 +152,17 @@ It is possible to boot an iso image from a physical partition using grub2. To up
   * `find ./ | cpio -H newc -o >/tmp/initrd-cpio`
   * `gzip -c /tmp/initrd.cpio > /boot/initrd-nuclear.img`
 
+### Data to be saved before upgrading
+  * /usr/local/probe/db/elasticsearch/data entire directory structure should be moved to /usr/local/save/data
+    * Looks like elasticsearch install leaves the data directory as is, so this doesn't need to be moved.
+  * Move /usr/local/probe/conf/\* files to /usr/local/save/conf
+  * Move /usr/local/probe/userLua/\* files to /usr/local/save/userLua
+
+
+### Post Install steps
+  * chown files that need new ownership
+    * `chown -R elasticsearch:dpi /usr/local/probe/db/elasticsearch/data`
+    * `chown -R dpi:dpi /pcap0`
+  * Set management interface in /etc/sysconfig/network-scripts/ifcfg-xxx to match conf/nm.yaml.Interface; restore nm.yaml.Interface to /usr/local/probe/conf
+  * Set pcapInterface in /usr/local/probe/conf/nm.yaml to match save/conf/nm.yaml. Can the entire nm.yaml file be restored?
+

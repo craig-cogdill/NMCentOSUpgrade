@@ -26,8 +26,12 @@ echo "fi" >> _lr_runup.sh
 
 echo "if ! uname -a | grep -q "2.6.32-573.7.1.el6.x86_64"; then" >> _lr_runup.sh
 echo "   echo Unexpected OS Version: \`uname -a\`" >> _lr_runup.sh
-echo "   exit 1" >> _lr_runup.sh
+echo "   exit 10" >> _lr_runup.sh
 echo "fi" >> _lr_runup.sh
+
+# Shutdown ProbeReader and ProbeLogger
+
+# Save configuration files from /usr/local/probe/conf
 
 echo "rpm -Uvh --force grub-2.02.beta3-1.el6.x86_64.rpm" >> _lr_runup.sh
 echo "grub-install /dev/sda" >> _lr_runup.sh

@@ -106,6 +106,8 @@ cat ${BASEINSTALL}/kickstart/post.chroot.sh >> ${KSBUILD}/USB_build/ks/ks.dynami
 cat ${BASEINSTALL}/kickstart/post.no.chroot.sh >> ${KSBUILD}/USB_build/ks/ks.dynamic.cfg
 # Add the post script which runs a perl script to setup the ifcfg-* files
 cat ${BASEINSTALL}/kickstart/post.ifcfg.setup.pl >> ${KSBUILD}/USB_build/ks/ks.dynamic.cfg
+# Add the post script to perform post upgrade actions
+cat ${NMCENTOSUPGRADE}/kickstart/post.upgrade.sh >> ${KSBUILD}/USB_build/ks/ks.dynamic.cfg
 
 cp ${BASEINSTALL}/kickstart/ks.customdisk.cfg.usb ${KSBUILD}/USB_build/ks/ks.customdisk.cfg
 # Add the post script which runs in a chroot environment
