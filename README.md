@@ -21,26 +21,18 @@ It is possible to boot an iso image from a physical partition using grub2. To up
   * script to check system for suitability to perform the upgrade successfully
   * script to install and configure grub2
   * script to copy iso and initrd files to proper locations
-  * script to stop ProbeReader and ProbeLogger
   * script to save metadata and configuration
   * script to configure grub to reboot with option 2 and reboot the system.
-
-### Installing and configuring grub2:
-  * rpm -Uvh --force grub-2.02.beta3-1.el6.x86_64.rpm
-  * grub-install /dev/sda
-  * rm /boot/grub/grub.conf
-  * grub-mkconfig -o /boot/grub/grub.cfg
 
 ### Assumptions about upgrade target
   * System is running 2.6.32-573.7.1.el6.x86_64 linux kernel.
   * System has /boot partition on /dev/sda1 partition.
-  * System has /dev/sda1 partition starting at section 2048 and size 1024000.
-  * System does not have a removable disk (USB memory drive) plugged into the system.
+  * System has /dev/sda1 partition starting at sector 2048 and size 1024000.
+  * System has /dev/sda2 partition starting at sector 1026048 and size 583817216.
   * System has vg_probe00 volume group allocated on /dev/sda2 partition.
   * System has vg_probe01 volume group allocated on /dev/sdb1 partition.
   * System has lv_data logical volume on vg_probe01 volume group.
   * /dev/mapper/vg_probe01-lv_data is mounted on /usr/local mount point.
-  * /dev/sda drive is 299439751168 bytes in size; and total sectors is 584843264.
 
 ### Building a nuclear initrd image
   * Start with the /boot/initramfs-2.6.32-573.7.1.el6.x86_64.img
