@@ -12,7 +12,8 @@ VERSION=$1
 echo "#!/bin/bash" > _lr_runup.sh
 echo "# LogRhythm Upgrade pre-check" >> _lr_runup.sh
 echo "# Return codes:" >> _lr_runup.sh
-echo "#   1 - System is good for running upgrade" >> _lr_runup.sh
+echo "#   1 - System is good for running upgrade; management interface is on the motherboard" >> _lr_runup.sh
+echo "#   2 - System is good for running upgrade, but management interface is not on the motherboard" >> _lr_runup.sh
 echo "#  10 - Operating system is not 2.6.32-573.7.1" >> _lr_runup.sh
 echo "#  11 - boot mount point is not found on sda1 partition" >> _lr_runup.sh
 echo "#  12 - sda1 partition is not at expected location or not expected size" >> _lr_runup.sh
@@ -95,11 +96,44 @@ echo "sed -i -e \"s/maxFileSize.*1000000000/maxFileSize: 2000000000/g\" /usr/loc
 echo "sed -i -e \"s/max_file_size.*1000000000/max_file_size\' => 2000000000/g\" /usr/local/www/probe/data/models/FileUploader.php" >> _lr_runup.sh
 echo "sed -i -e \"s/post_max_size.*1000000000/post_max_size\' => 2000000000/g\" /usr/local/www/probe/data/models/FileUploader.php" >> _lr_runup.sh
 
-echo "# Return 1 for this special upgrade package. This prevents the GUI from attempting to reboot the system." >> _lr_runup.sh
+echo "# Backup configuration data to be restored after the upgrade." >> _lr_runup.sh
+echo "mkdir -p /usr/local/save/conf" >> _lr_runup.sh
+echo "cp -a /usr/local/probe/conf/* /usr/local/save/conf/" >> _lr_runup.sh
+echo "mkdir -p /usr/local/save/userLua" >> _lr_runup.sh
+echo "cp -a /usr/local/probe/userLua/* /usr/local/save/userLua/" >> _lr_runup.sh
+
+# Install rpm package for dmidecode tool
+echo "rpm -Uv dmidecode-2.12-7.el6.x86_64.rpm" >> _lr_runup.sh
+
+echo "# Is management interface on eth0 or em1?" >> _lr_runup.sh
+echo "if ip address | grep -q eth0; then" >> _lr_runup.sh
+echo "   echo Management interface is eth0" >> _lr_runup.sh
+echo "   MGMT_INTF=eth0" >> _lr_runup.sh
+echo "else" >> _lr_runup.sh
+echo "   echo Management interface is em1" >> _lr_runup.sh
+echo "   MGMT_INTF=em1" >> _lr_runup.sh
+echo "fi" >> _lr_runup.sh
+
+
+echo "# Check if management interface is on the motherboard or not" >> _lr_runup.sh
+echo "BUSINFO=\`ethtool -i \$MGMT_INTF | grep bus-info\`" >> _lr_runup.sh
+echo "# Extract the Bus Address from the bus info" >> _lr_runup.sh
+echo "[[ \"\$BUSINFO\" =~ bus-info:[[:space:]]*([[:xdigit:]]{4}:[[:xdigit:]]{2}:[[:xdigit:]]{2}\.[[:xdigit:]]) ]]" >> _lr_runup.sh
+echo "if ! dmidecode | grep -B 10 -i \${BASH_REMATCH[1]} | grep -q \"Onboard Device\"; then" >> _lr_runup.sh
+echo "   echo Management interface is not on the motherboard." >> _lr_runup.sh
+echo "   exit 2" >> _lr_runup.sh
+echo "fi" >> _lr_runup.sh
+
+echo "# Management interface is on motherboard" >> _lr_runup.sh
+echo "echo Management interface is on the motherboard." >> _lr_runup.sh
 echo "exit 1" >> _lr_runup.sh
+echo "# Note: non-zero return prevents the GUI from attempting to reboot the system." >> _lr_runup.sh
 
 # Tar up the script to perform the pre-check upgrade
-tar cvf upgrade.tar _lr_runup.sh
+tar cvf upgrade.tar \
+   _lr_runup.sh \
+   -C ../rpms/ \
+   dmidecode-2.12-7.el6.x86_64.rpm 
 # Encrypt the tar
 mcrypt -h sha512 -f ../resources/passphrase upgrade.tar
 

@@ -34,7 +34,7 @@ It is possible to boot an iso image from a physical partition using grub2. To up
   * System has lv_data logical volume on vg_probe01 volume group.
   * /dev/mapper/vg_probe01-lv_data is mounted on /usr/local mount point.
 
-### Building a nuclear initrd image
+### Building a custom nuclear initrd image
   * Start with the /boot/initramfs-2.6.32-573.7.1.el6.x86_64.img
   * unpack the initramfs from the /boot directory. For example:
   * `mkdir initrd`
@@ -156,5 +156,7 @@ It is possible to boot an iso image from a physical partition using grub2. To up
     * `chown -R elasticsearch:dpi /usr/local/probe/db/elasticsearch/data`
     * `chown -R dpi:dpi /pcap0`
   * Set management interface in /etc/sysconfig/network-scripts/ifcfg-xxx to match conf/nm.yaml.Interface; restore nm.yaml.Interface to /usr/local/probe/conf
-  * Set pcapInterface in /usr/local/probe/conf/nm.yaml to match save/conf/nm.yaml. Can the entire nm.yaml file be restored?
+  * Restore nm.yaml settings saved in /usr/local/save/conf/nm.yaml
+    * Can the entire nm.yaml file be restored?
+    * pcapInterface may need to be updated to modify ethX or other non bond0 setting.
 
