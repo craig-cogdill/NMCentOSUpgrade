@@ -11,6 +11,7 @@ It is possible to boot an iso image from a physical partition using grub2. To up
   * Repartition the sda drive as described above.
   * Copy the iso image into the sda3 partition.
   * Reboot the system and run the iso image.
+
 6. The iso image must be properly prepared to recreate the root, home, and swap partitions while reusing the existing /usr/local and pcap partitions. The iso image must also be able to move the metadata and configuration in /usr/local to a saved location during the install and then recover the saved data so it is available when the upgraded system starts up.<br>
 
 ### lrp contents
@@ -37,9 +38,9 @@ It is possible to boot an iso image from a physical partition using grub2. To up
 ### Building a custom nuclear initrd image
   * Start with the /boot/initramfs-2.6.32-573.7.1.el6.x86_64.img
   * unpack the initramfs from the /boot directory. For example:
-  * `mkdir initrd`
-  * `cd initrd`
-  * `gunzip -c /boot/initramfs-2.6.32-573.7.1.el6.x86_64.img | cpio -i –make-directories`
+    * `mkdir initrd`
+    * `cd initrd`
+    * `gunzip -c /boot/initramfs-2.6.32-573.7.1.el6.x86_64.img | cpio -i –make-directories`
 
 #### Modify the contents of the initrd directory
 
@@ -141,8 +142,8 @@ It is possible to boot an iso image from a physical partition using grub2. To up
 
 #### Creating a new initrd-nuclear.img
   * From the initrd directory:
-  * `find ./ | cpio -H newc -o >/tmp/initrd-cpio`
-  * `gzip -c /tmp/initrd.cpio > /boot/initrd-nuclear.img`
+    * `find ./ | cpio -H newc -o >/tmp/initrd-cpio`
+    * `gzip -c /tmp/initrd.cpio > /boot/initrd-nuclear.img`
 
 ### Data to be saved before upgrading
   * /usr/local/probe/db/elasticsearch/data entire directory structure should be moved to /usr/local/save/data
