@@ -4,13 +4,28 @@
 #  1. script is run out of NMCentOSUpgrade/scripts directory.
 #  2. iso.usb file has been created in ~/kickstart/3.2.1.108_UsbDynamic
 set -e
-if [ -z "$1" ]
+if [[ $# -ne 2 ]]
   then
-    echo "Usage: $0 <version>"
-    exit;
+    echo "Usage: $0 <version> <iso-usb-directory>"
+    echo "e.g., $0 3.2.2.122 /home/devdan/kickstart/"
+    exit 1;
 fi
 
 VERSION=$1
+ISOUSBDIR="${2}/${VERSION}"_UsbDynamic
+ISOUSB=nm_install_"${1}".iso.usb
+
+
+echo; echo
+echo VERSION = $VERSION
+echo ISOUSBDIR = $ISOUSBDIR
+echo ISOUSB = $ISOUSB
+echo; echo
+
+if [ ! -f "$ISOUSBDIR/$ISOUSB" ]; then
+   echo ISO USB file not found: $ISOUSBDIR/$ISOUSB
+   exit 2
+fi
 
 echo "#!/bin/bash" > _lr_runup.sh
 echo "# Install LogRhythm Upgrade" >> _lr_runup.sh
@@ -45,17 +60,22 @@ echo "grub-mkconfig -o /boot/grub/grub.cfg" >> _lr_runup.sh
 echo "grub-reboot 2" >> _lr_runup.sh
 echo "shutdown -r +1" >> _lr_runup.sh
 
-# Tar up the files and the scripts to perform this upgrade
+echo Tar up the files and the scripts to perform the upgrade:
 tar cvf upgrade.tar \
    _lr_runup.sh \
    -C ../resources/ \
    grub_menu_options \
    initrd-nuclear.img \
    grub-2.02.beta3-1.el6.x86_64.rpm \
-   -C ~/kickstart/3.2.1.108_UsbDynamic/ \
-   nm_install_3.2.1.108.iso.usb
+   -C $ISOUSBDIR \
+   $ISOUSB
+
 # Encrypt the tar
 mcrypt -h sha512 -f ../resources/passphrase upgrade.tar
 
 # Rename the encrypted file to the upgrade package name
 mv upgrade.tar.nc upgrade-centos-$VERSION.lrp
+
+echo
+echo lrp package created: upgrade-centos-$VERSION.lrp
+echo
