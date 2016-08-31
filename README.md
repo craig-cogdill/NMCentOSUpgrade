@@ -34,6 +34,7 @@ It is possible to boot an iso image from a physical partition using grub2. To up
   * System has vg_probe00 volume group allocated on /dev/sda2 partition.
   * System has vg_probe01 volume group allocated on /dev/sdb1 partition.
   * System has lv_data logical volume on vg_probe01 volume group.
+  * System has lv_pcapX logical volume on vg_probe01 volume group, where X is blank, 0, 1, or 2.
   * /dev/mapper/vg_probe01-lv_data is mounted on /usr/local mount point.
 
 ### Building a custom nuclear initrd image
@@ -151,6 +152,8 @@ It is possible to boot an iso image from a physical partition using grub2. To up
     * Looks like elasticsearch install leaves the data directory as is, so this doesn't need to be moved.
   * Move /usr/local/probe/conf/\* files to /usr/local/save/conf
   * Move /usr/local/probe/userLua/\* files to /usr/local/save/userLua
+  * Timezone setting
+  * NTP settings
 
 
 ### Post Install steps
@@ -161,4 +164,5 @@ It is possible to boot an iso image from a physical partition using grub2. To up
   * Restore nm.yaml settings saved in /usr/local/save/conf/nm.yaml
     * Can the entire nm.yaml file be restored?
     * pcapInterface may need to be updated to modify ethX or other non bond0 setting.
-
+  * Set system NTP configuration to match previous settings.
+  * Set timezone (Maybe this can be done in the grub menu when booting from the iso.)

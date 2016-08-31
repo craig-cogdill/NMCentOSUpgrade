@@ -22,6 +22,7 @@ echo "#  14 - vg_probe00 is not found on sda2 partition" >> _lr_runup.sh
 echo "#  15 - vg_probe01 is not found on sdb1 partition" >> _lr_runup.sh
 echo "#  16 - lv_data is not found on vg_probe01 volume group" >> _lr_runup.sh
 echo "#  17 - /dev/mapper/vg_probe01-lv_data is not mounted on /usr/local mount point" >> _lr_runup.sh
+echo "#  18 - lv_pcapX is not found on vg_probe01 volume group" >> _lr_runup.sh
 
 echo "set -e" >> _lr_runup.sh
 # Parameter passed at runtime is the upgrade directory. If it isn't set then
@@ -48,14 +49,14 @@ echo "   exit 11" >> _lr_runup.sh
 echo "fi" >> _lr_runup.sh
 
 echo "# Is the sda1 partition the expected size and location?" >> _lr_runup.sh
-echo "if ! sfdisk -d /dev/sda | grep -q \"/dev/sda1 : start=\\s*2048, size=\\s*1024000\"; then" >> _lr_runup.sh
+echo "if ! sfdisk -d /dev/sda | grep -q /dev/sda1[[:space:]]*:[[:space:]]*start=[[:space:]]*2048,[[:space:]]*size=[[:space:]]*1024000; then" >> _lr_runup.sh
 echo "   echo sda1 partition is not at expected location or not expected size." >> _lr_runup.sh
 echo "   sfdisk -d /dev/sda" >> _lr_runup.sh
 echo "   exit 12" >> _lr_runup.sh
 echo "fi" >> _lr_runup.sh
 
 echo "# Is the sda2 partition the expected size and location?" >> _lr_runup.sh
-echo "if ! sfdisk -d /dev/sda | grep -q \"/dev/sda2 : start=\\s*1026048, size=\\s*583817216\"; then" >> _lr_runup.sh
+echo "if ! sfdisk -d /dev/sda | grep -q /dev/sda2[[:space:]]*:[[:space:]]*start=[[:space:]]*1026048,[[:space:]]*size=[[:space:]]*583817216; then" >> _lr_runup.sh
 echo "   echo sda2 partition is not at expected location or not expected size." >> _lr_runup.sh
 echo "   sfdisk -d /dev/sda" >> _lr_runup.sh
 echo "   exit 13" >> _lr_runup.sh
@@ -76,7 +77,7 @@ echo "   exit 15" >> _lr_runup.sh
 echo "fi" >> _lr_runup.sh
 
 echo "# Is lv_data logical volume on vg_probe01 volume group?" >> _lr_runup.sh
-echo "if ! lvm lvs 2>&1 | grep -q \"lv_data\s*vg_probe01\" ; then" >> _lr_runup.sh
+echo "if ! lvm lvs 2>&1 | grep -q lv_data[[:space:]]*vg_probe01; then" >> _lr_runup.sh
 echo "   echo lv_data logical volume not found on vg_probe01 volume group" >> _lr_runup.sh
 echo "   lvm lvs 2>/dev/null" >> _lr_runup.sh
 echo "   exit 16" >> _lr_runup.sh
@@ -87,6 +88,13 @@ echo "if ! mount | grep -q \"/dev/mapper/vg_probe01-lv_data on /usr/local\"; the
 echo "   echo /dev/mapper/vg_probe01-lv_data is not mounted on /usr/local mount point" >> _lr_runup.sh
 echo "   mount" >> _lr_runup.sh
 echo "   exit 17" >> _lr_runup.sh
+echo "fi" >> _lr_runup.sh
+
+echo "# Is lv_pcapX logical volume on vg_probe01 volume group?" >> _lr_runup.sh
+echo "if ! lvm lvs 2>&1 | grep -q lv_pcap[012]*[[:space:]]*vg_probe01; then" >> _lr_runup.sh
+echo "   echo lv_pcapX logical volume not found on vg_probe01 volume group" >> _lr_runup.sh
+echo "   lvm lvs 2>/dev/null" >> _lr_runup.sh
+echo "   exit 18" >> _lr_runup.sh
 echo "fi" >> _lr_runup.sh
 
 echo "# If the script has not exited at this point, all system checks passed. Prepare the system for upgrading." >> _lr_runup.sh

@@ -4,7 +4,10 @@
 
 # Change owner:group settings to match the new UID:GID on the new OS. 
 chown -R elasticsearch:dpi /usr/local/probe/db/elasticsearch/data
-chown -R dpi:dpi /pcap0
+
+for dir in /pcap*; do
+   chown -R dpi:dpi $dir
+done
 
 %end
 
