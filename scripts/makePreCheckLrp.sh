@@ -23,6 +23,7 @@ echo "#  15 - vg_probe01 is not found on sdb1 partition" >> _lr_runup.sh
 echo "#  16 - lv_data is not found on vg_probe01 volume group" >> _lr_runup.sh
 echo "#  17 - /dev/mapper/vg_probe01-lv_data is not mounted on /usr/local mount point" >> _lr_runup.sh
 echo "#  18 - lv_pcapX is not found on vg_probe01 volume group" >> _lr_runup.sh
+echo "#  19 - Removable media discovered on system" >> _lr_runup.sh
 
 echo "set -e" >> _lr_runup.sh
 # Parameter passed at runtime is the upgrade directory. If it isn't set then
@@ -32,6 +33,8 @@ echo "   cd /usr/local/probe/upload" >> _lr_runup.sh
 echo "else" >> _lr_runup.sh
 echo "   cd \$1" >> _lr_runup.sh
 echo "fi" >> _lr_runup.sh
+
+echo "echo" >> _lr_runup.sh
 
 # Validate system: Can this system be upgraded?
 echo "# Is the OS running the expected kernel?" >> _lr_runup.sh
@@ -95,6 +98,25 @@ echo "if ! lvm lvs 2>&1 | grep -q lv_pcap[012]*[[:space:]]*vg_probe01; then" >> 
 echo "   echo lv_pcapX logical volume not found on vg_probe01 volume group" >> _lr_runup.sh
 echo "   lvm lvs 2>/dev/null" >> _lr_runup.sh
 echo "   exit 18" >> _lr_runup.sh
+echo "fi" >> _lr_runup.sh
+
+echo "# Is removable media plugged into the system?" >> _lr_runup.sh
+echo "removableFound=false" >> _lr_runup.sh
+echo "for DEV in sda sdb sdc sdd sde; do" >> _lr_runup.sh
+echo "   DIR="/sys/block"" >> _lr_runup.sh
+echo "   if [ -d \$DIR/\$DEV ]; then" >> _lr_runup.sh
+echo "      REMOVABLE=\`cat \$DIR/\$DEV/removable\`" >> _lr_runup.sh
+echo "      if (( \$REMOVABLE == 1 )); then" >> _lr_runup.sh
+echo "         echo \$DEV is removable" >> _lr_runup.sh
+echo "         removableFound=true" >> _lr_runup.sh
+echo "      else" >> _lr_runup.sh
+echo "         echo \$DEV is not removable" >> _lr_runup.sh
+echo "      fi" >> _lr_runup.sh
+echo "   fi" >> _lr_runup.sh
+echo "done" >> _lr_runup.sh
+echo "if [ "\$removableFound" = "true" ]; then" >> _lr_runup.sh
+echo "   echo Removable media found on the system" >> _lr_runup.sh
+echo "   exit 19" >> _lr_runup.sh
 echo "fi" >> _lr_runup.sh
 
 echo "# If the script has not exited at this point, all system checks passed. Prepare the system for upgrading." >> _lr_runup.sh
