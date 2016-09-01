@@ -7,7 +7,6 @@ lang en_US.UTF-8
 text
 # Run the Setup Agent on first boot
 firstboot --enable
-ignoredisk --only-use=sda,sdb
 # Keyboard layouts
 keyboard --vckeymap=us --xlayouts='us'
 rootpw --lock
@@ -22,13 +21,8 @@ services --disabled="chronyd"
 services --disabled=NetworkManager --enable=network
 # # System timezone
 timezone --utc America/Denver --nontp
-# System bootloader configuration
-bootloader --append=" crashkernel=auto" --location=mbr --boot-drive=sda
 
-# Partition clearing information for hardware
-clearpart --initlabel --list=sda2,sda1
-# Disk partitioning information for hardware
-part /boot --fstype="ext4" --size=500
+# Disk partitioning information
 
 %include /tmp/part-include
 
@@ -52,6 +46,7 @@ declare -A volgroups
 vgIndex=0
 declare -A logvols
 lvIndex=0
+useDrives="sda,sdb"
 
 # Set up partitions, volume group, and logical volumes for the sda drive
 partitions[$partIndex]="part pv.607 --fstype=\"lvmpv\" --ondisk=sda --size=1 --grow"
@@ -70,16 +65,23 @@ let lvIndex+=1
 # This following code assumes the physical volumes, volume groups, and logical volumes on the sda drive have been deleted.
 
 # Discover and retain physical volumes on the sdb and sdc drives.
+foundSdc=false
 lvm pvs > /tmp/lvmpvs
 while read pvs_line; do 
    if echo $pvs_line | grep -q \/dev\/; then
       pvs_parts=( $pvs_line ) # parse line into array
       drive=${pvs_parts[0]:5} # Trim off "/dev/" chars
       partitions[$partIndex]="part pv.$pvIndex --fstype=\"lvmpv\" --noformat --onpart=$drive"
+      if echo $drive | grep -q sdc; then
+         foundSdc=true
+      fi
       let partIndex+=1
       let pvIndex+=10
    fi
 done < /tmp/lvmpvs
+if [ $foundSdc = "true" ]; then
+   useDrives="sda,sdb,sdc"
+fi
 
 # Discover and retain volume groups on sdb and sdc drives.
 lvm vgs > /tmp/lvmvgs
@@ -110,8 +112,11 @@ while read lvs_line; do
    fi
 done < /tmp/lvmlvs
 
-# Write the array contents to /tmp/part-include
-touch /tmp/part-include
+# Write the disk partitioning contents to /tmp/part-include
+echo "ignoredisk --only-use=$useDrives" > /tmp/part-include
+echo "bootloader --append=\" crashkernel=auto\" --location=mbr --boot-drive=sda" >> /tmp/part-include
+echo "clearpart --initlabel --list=sda2,sda1" >> /tmp/part-include
+echo "part /boot --fstype=\"ext4\" --size=500" >> /tmp/part-include
 
 for prtn in ${!partitions[@]}; do
   echo ${partitions[$prtn]} >> /tmp/part-include

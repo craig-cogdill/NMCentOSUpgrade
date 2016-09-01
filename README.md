@@ -52,6 +52,7 @@ It is possible to boot an iso image from a physical partition using grub2. To up
   * System has lv_data logical volume on vg_probe01 volume group.
   * System has lv_pcapX logical volume on vg_probe01 volume group, where X is blank, 0, 1, or 2.
   * /dev/mapper/vg_probe01-lv_data is mounted on /usr/local mount point.
+  * Removable disk media (USB drives) are not connected to the system.
 
 ### Building a custom nuclear initrd image
   * Start with the /boot/initramfs-2.6.32-573.7.1.el6.x86_64.img
