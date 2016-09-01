@@ -3,14 +3,12 @@ Scripts and packaging needed to create an LRP that can upgrade a legacy CentOS 6
 
 ### Workflow
 
-cd into the scripts directory and run the following scripts:
-<pre><code>
-    ./makeNmUsbUpgrade.sh <version> <NMCentOSUpgrade-directory> <kickstart-build-directory> [buildRPMS-num]
-    ./makePreCheckLrp.sh <version>
-    ./makeUpgradeLrp.sh <version> <iso-usb-directory>
-</code></pre>
+cd into the scripts directory and run the following scripts:<br>
+  * `./makeNmUsbUpgrade.sh <version> <NMCentOSUpgrade-directory> <kickstart-build-directory> [buildRPMS-num]`<br>
+  * `./makePreCheckLrp.sh <version>`<br>
+  * `./makeUpgradeLrp.sh <version> <iso-usb-directory>`<br>
 
-for example:
+for example:<br>
 <pre><code>
     ./makeNmUsbUpgrade.sh 3.2.1.108 /home/jgress/wk /home/jgress/kickstart 71
     ./makePreCheckLrp.sh 3.2.1.108
