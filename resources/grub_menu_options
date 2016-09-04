@@ -7,12 +7,12 @@ menuentry 'Reformat sda drive ...' --class gnu-linux --class gnu --class os {
   initrd /initrd-nuclear.img
 }
 
-menuentry "Install NetMon 3.2.1" {
+menuentry "Install NetMon VERSION" {
   echo    'Loading Linux from isofile ...'
-  set isofile=/nm_install_3.2.1.108.iso.usb
+  set isofile=/nm_install_VERSION.iso.usb
   loopback loop (hd0,3)$isofile
-  search --no-floppy --set=root -l 'NetMon_3.2.1.108'
-  linux (loop)/isolinux/vmlinuz boot=isolinux iso-scan/filename=$isofile inst.stage2=hd:LABEL=NetMon_3.2.1.108 inst.ks=hd:LABEL=NetMon_3.2.1.108:/ks/ks.dynamic.cfg ro rd.live.image rd.luks=0 rd.md=0 rd.dm=0 text
+  search --no-floppy --set=root -l 'NetMon_VERSION'
+  linux (loop)/isolinux/vmlinuz boot=isolinux iso-scan/filename=$isofile inst.stage2=hd:LABEL=NetMon_VERSION inst.ks=hd:LABEL=NetMon_VERSION:/ks/ks.dynamic.cfg ro rd.live.image rd.luks=0 rd.md=0 rd.dm=0 text
   initrd (loop)/isolinux/initrd.img
 }
 

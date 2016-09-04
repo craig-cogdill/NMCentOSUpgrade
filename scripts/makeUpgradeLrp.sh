@@ -60,6 +60,7 @@ echo "mv nm_install_3.2.1.108.iso.usb /usr/local/iso/" >> _lr_runup.sh
 echo "# Set up grub2 menu to do special boot operations." >> _lr_runup.sh
 echo "# First reboot: reformat sda drive, and prepare for installing CentOS 7.2 with new Network Monitor." >> _lr_runup.sh
 echo "# Second reboot: install from the iso file." >> _lr_runup.sh
+echo "sed -i -e \"s/VERSION/$VERSION/g\" grub_menu_options" >> _lr_runup.sh
 echo "cat grub_menu_options >> /usr/local/etc/grub.d/40_custom" >> _lr_runup.sh
 echo "grub-mkconfig -o /boot/grub/grub.cfg" >> _lr_runup.sh
 echo "grub-reboot 2" >> _lr_runup.sh
