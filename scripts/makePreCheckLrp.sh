@@ -126,13 +126,7 @@ echo "sed -i -e \"s/maxFileSize.*1000000000/maxFileSize: 2000000000/g\" /usr/loc
 echo "sed -i -e \"s/max_file_size.*1000000000/max_file_size\' => 2000000000/g\" /usr/local/www/probe/data/models/FileUploader.php" >> _lr_runup.sh
 echo "sed -i -e \"s/post_max_size.*1000000000/post_max_size\' => 2000000000/g\" /usr/local/www/probe/data/models/FileUploader.php" >> _lr_runup.sh
 
-echo "# Backup configuration data to be restored after the upgrade." >> _lr_runup.sh
-echo "mkdir -p /usr/local/save/conf" >> _lr_runup.sh
-echo "cp -a /usr/local/probe/conf/* /usr/local/save/conf/" >> _lr_runup.sh
-echo "mkdir -p /usr/local/save/userLua" >> _lr_runup.sh
-echo "cp -a /usr/local/probe/userLua/* /usr/local/save/userLua/" >> _lr_runup.sh
-
-# Install rpm package for dmidecode tool
+echo "# Install rpm package for dmidecode tool" >> _lr_runup.sh
 echo "rpm -Uv dmidecode-2.12-7.el6.x86_64.rpm" >> _lr_runup.sh
 
 echo "# Is management interface on eth0 or em1?" >> _lr_runup.sh

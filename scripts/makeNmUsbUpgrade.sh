@@ -128,7 +128,7 @@ cp ${BASEINSTALL}/kickstart/NMSplash.png ${KSBUILD}/USB_build/isolinux/splash.pn
 
 # Get the RPM set for this release from Jenkins.
 cd ${KSBUILD}/USB_build/Packages
-wget http://nmbuild.logrhythm.com:8080/view/Build%20Pipeline/job/package/${BUILDRPMSNUM}/artifact/NM_rpms_${VERSION}.tar.gz
+wget http://nmbuild.logrhythm.com:8080/job/package/${BUILDRPMSNUM}/artifact/NM_rpms_${VERSION}.tar.gz
 
 tar xzvf NM_rpms_${VERSION}.tar.gz
 rm -f ${KSBUILD}/USB_build/Packages/NM_rpms_${VERSION}.tar.gz

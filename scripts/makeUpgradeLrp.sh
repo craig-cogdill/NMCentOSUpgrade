@@ -44,20 +44,47 @@ echo "   echo Unexpected OS Version: \`uname -a\`" >> _lr_runup.sh
 echo "   exit 10" >> _lr_runup.sh
 echo "fi" >> _lr_runup.sh
 
-# Shutdown ProbeReader and ProbeLogger
-
-# Save configuration files from /usr/local/probe/conf
-
+echo "# Install and configure grub2" >> _lr_runup.sh
 echo "rpm -Uvh --force grub-2.02.beta3-1.el6.x86_64.rpm" >> _lr_runup.sh
 echo "grub-install /dev/sda" >> _lr_runup.sh
 echo "rm /boot/grub/grub.conf" >> _lr_runup.sh
 echo "grub-mkconfig -o /boot/grub/grub.cfg" >> _lr_runup.sh
+
+echo "# Save the initial ram disk used to reformat the sda drive" >> _lr_runup.sh
 echo "cp initrd-nuclear.img /boot/" >> _lr_runup.sh
+
+echo "# Move the iso image so it does not get deleted during sda drive reformatting" >> _lr_runup.sh
 echo "mkdir -p /usr/local/iso" >> _lr_runup.sh
 echo "mv nm_install_3.2.1.108.iso.usb /usr/local/iso/" >> _lr_runup.sh
+
+echo "# Set up grub2 menu to do special boot operations." >> _lr_runup.sh
+echo "# First reboot: reformat sda drive, and prepare for installing CentOS 7.2 with new Network Monitor." >> _lr_runup.sh
+echo "# Second reboot: install from the iso file." >> _lr_runup.sh
 echo "cat grub_menu_options >> /usr/local/etc/grub.d/40_custom" >> _lr_runup.sh
 echo "grub-mkconfig -o /boot/grub/grub.cfg" >> _lr_runup.sh
 echo "grub-reboot 2" >> _lr_runup.sh
+
+echo "# Backup configuration data to be restored after the upgrade." >> _lr_runup.sh
+echo "mkdir -p /usr/local/save/conf" >> _lr_runup.sh
+echo "cp -a /usr/local/probe/conf/* /usr/local/save/conf/" >> _lr_runup.sh
+echo "mkdir -p /usr/local/save/userLua" >> _lr_runup.sh
+echo "cp -a /usr/local/probe/userLua/* /usr/local/save/userLua/" >> _lr_runup.sh
+echo "mkdir -p /usr/local/save/apiLua/usr" >> _lr_runup.sh
+echo "cp -a /usr/local/probe/apiLua/usr/* /usr/local/save/apiLua/usr/" >> _lr_runup.sh
+
+echo "# Stop processing packets. Shutdown ProbeReader and ProbeLogger" >> _lr_runup.sh
+echo "stop probereader || true" >> _lr_runup.sh
+echo "stop probelogger || true" >> _lr_runup.sh
+
+echo "# Save the elasticsearch metadata" >> _lr_runup.sh
+echo "mkdir -p /usr/local/save/elasticsearch" >> _lr_runup.sh
+echo "mv /usr/local/probe/db/elasticsearch/data /usr/local/save/elasticsearch/" >> _lr_runup.sh
+
+echo "# Remove all remnants of CentOS 6.5 Network Monitor" >> _lr_runup.sh
+echo "rm -rf /usr/local/probe" >> _lr_runup.sh
+
+echo "shutdown -r +1" >> _lr_runup.sh
+
 echo "shutdown -r +1" >> _lr_runup.sh
 
 echo Tar up the files and the scripts to perform the upgrade:

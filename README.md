@@ -167,7 +167,7 @@ It is possible to boot an iso image from a physical partition using grub2. To up
     * Looks like elasticsearch install leaves the data directory as is, so this doesn't need to be moved.
   * Move /usr/local/probe/conf/\* files to /usr/local/save/conf
   * Move /usr/local/probe/userLua/\* files to /usr/local/save/userLua
-  * Timezone setting
+  * Timezone setting. copy /etc/sysconfig/clock to /usr/local/save/timezone
   * NTP settings
   * /usr/local/probe/apiLua/usr/\* files to /usr/local/save/apiLua/usr
 
@@ -182,4 +182,5 @@ It is possible to boot an iso image from a physical partition using grub2. To up
     * pcapInterface may need to be updated to modify ethX or other non bond0 setting.
   * Restore apiLua/usr/\* files to /usr/local/probe/apiLua/usr
   * Set system NTP configuration to match previous settings.
-  * Set timezone (Maybe this can be done in the grub menu when booting from the iso.)
+  * Set timezone. In post install script use, `timedatectl set-timezone America/Denver`
+
