@@ -118,17 +118,38 @@ It is possible to boot an iso image from a physical partition using grub2. To up
     
     cp /usrlocal/iso/nm_install* /lrup/
     
+    echo
+    echo
+    echo iso image copied to sda3 partition
     echo Waiting for unmount of lrup partition.
+    echo
+    echo
     until umount /lrup
     do
        echo Waiting for unmount of lrup partition.
        sleep 1
     done
+    
     echo
     echo
-    echo iso image copied to sda3 partition
-    echo
-    echo
+    echo Backup configuration data to be restored after the upgrade.
+    mkdir -p /usrlocal/save
+    mv /usrlocal/probe/conf /usr/local/save/
+    mv /usrlocal/probe/userLua /usr/local/save/
+    mkdir -p /usrlocal/save/apiLua
+    mv /usrlocal/probe/apiLua/usr /usr/local/save/apiLua
+    mkdir -p /usrlocal/save/elasticsearch
+    mv /usrlocal/probe/db/elasticsearch/data /usr/local/save/elasticsearch/
+    
+    # Remove all remaining remnants of CentOS 6.5 Network Monitor before upgrading
+    rm -rf /usr/local/probe/
+    
+    echo Waiting for unmount of usrlocal partition.
+    until umount /usrlocal
+    do
+       echo Waiting for unmount of usrlocal partition.
+       sleep 1
+    done
     
     # The third grub boot menu option is to install from the iso file in sda3
     echo Change grub to boot the third menu option on next boot
