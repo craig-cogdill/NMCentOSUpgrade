@@ -65,27 +65,6 @@ echo "cat grub_menu_options >> /usr/local/etc/grub.d/40_custom" >> _lr_runup.sh
 echo "grub-mkconfig -o /boot/grub/grub.cfg" >> _lr_runup.sh
 echo "grub-reboot 2" >> _lr_runup.sh
 
-echo "# Backup configuration data to be restored after the upgrade." >> _lr_runup.sh
-echo "mkdir -p /usr/local/save/conf" >> _lr_runup.sh
-echo "cp -a /usr/local/probe/conf/* /usr/local/save/conf/" >> _lr_runup.sh
-echo "mkdir -p /usr/local/save/userLua" >> _lr_runup.sh
-echo "cp -a /usr/local/probe/userLua/* /usr/local/save/userLua/" >> _lr_runup.sh
-echo "mkdir -p /usr/local/save/apiLua/usr" >> _lr_runup.sh
-echo "cp -a /usr/local/probe/apiLua/usr/* /usr/local/save/apiLua/usr/" >> _lr_runup.sh
-
-echo "# Stop processing packets. Shutdown ProbeReader and ProbeLogger" >> _lr_runup.sh
-echo "stop probereader || true" >> _lr_runup.sh
-echo "stop probelogger || true" >> _lr_runup.sh
-
-echo "# Save the elasticsearch metadata" >> _lr_runup.sh
-echo "mkdir -p /usr/local/save/elasticsearch" >> _lr_runup.sh
-echo "mv /usr/local/probe/db/elasticsearch/data /usr/local/save/elasticsearch/" >> _lr_runup.sh
-
-echo "# Remove all remnants of CentOS 6.5 Network Monitor" >> _lr_runup.sh
-echo "rm -rf /usr/local/probe" >> _lr_runup.sh
-
-echo "shutdown -r +1" >> _lr_runup.sh
-
 echo "shutdown -r +1" >> _lr_runup.sh
 
 echo Tar up the files and the scripts to perform the upgrade:

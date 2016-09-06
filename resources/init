@@ -266,8 +266,6 @@ source_all pre-mount
 echo
 echo
 echo Copy iso image to new sda3 partition ...
-echo
-echo
 mkdir /usrlocal
 mount /dev/mapper/vg_probe01-lv_data /usrlocal
 mkdir /lrup
@@ -275,19 +273,39 @@ mount /dev/sda3 /lrup
 
 cp /usrlocal/iso/nm_install* /lrup/
 
+echo iso image copied to sda3 partition
 echo Waiting for unmount of lrup partition.
 until umount /lrup
 do
    echo Waiting for unmount of lrup partition.
    sleep 1
 done
+
 echo
 echo
-echo iso image copied to sda3 partition
-echo
-echo
+echo Backup configuration data to be restored after the upgrade.
+mkdir -p /usrlocal/save
+mv /usrlocal/probe/conf /usrlocal/save/
+mv /usrlocal/probe/userLua /usrlocal/save/
+mkdir -p /usrlocal/save/apiLua
+mv /usrlocal/probe/apiLua/usr /usrlocal/save/apiLua
+mkdir -p /usrlocal/save/elasticsearch
+mv /usrlocal/probe/db/elasticsearch/data /usrlocal/save/elasticsearch/
+
+# Remove all remaining remnants of CentOS 6.5 Network Monitor before upgrading
+rm -rf /usrlocal/probe/
+rm -rf /usrlocal/www/
+rm -rf /usrlocal/kibana*
+
+echo Waiting for unmount of usrlocal partition.
+until umount /usrlocal
+do
+   echo Waiting for unmount of usrlocal partition.
+   sleep 1
+done
 
 # The third grub boot menu option is to install from the iso file in sda3
+echo
 echo Change grub to boot the third menu option on next boot
 mkdir /boot
 mount /dev/sda1 /boot

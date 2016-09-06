@@ -11,7 +11,6 @@ mv /usr/local/save/elasticsearch/data /usr/local/probe/db/elasticsearch/
 echo Updating elasticsearch:dpi ownership on db/elasticsearch/data directory
 chown -R elasticsearch:dpi /usr/local/probe/db/elasticsearch/data
 
-echo Updating dpi ownership on pcap partitions
 for dir in /pcap*; do
    echo Updating dpi ownership on $dir
    chown -R dpi:dpi $dir
@@ -24,7 +23,6 @@ chown -R dpi:dpi /usr/local/save/userLua
 # Copy userLua rules which are not matching rules already in /usr/local/probe/userLua.
 cd /usr/local/save/userLua
 for file in *; do
-   echo "Checking $file"
    if [ ! -f /usr/local/probe/userLua/$file ]; then
 # TODO exclude system rules which have been deleted from NMSystemRules repo.
       echo "Recovering $file"

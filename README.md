@@ -143,6 +143,8 @@ It is possible to boot an iso image from a physical partition using grub2. To up
     
     # Remove all remaining remnants of CentOS 6.5 Network Monitor before upgrading
     rm -rf /usr/local/probe/
+    rm -rf /usr/local/www/
+    rm -rf /usr/local/kibana*
     
     echo Waiting for unmount of usrlocal partition.
     until umount /usrlocal
