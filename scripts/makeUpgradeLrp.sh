@@ -2,7 +2,7 @@
 # Make a LogRhythm Upgrade package (lrp) for a special upgrade from CentOS 6.5 to 7.2
 # Assumptions:
 #  1. script is run out of NMCentOSUpgrade/scripts directory.
-#  2. iso.usb file has been created in ~/kickstart/3.2.1.108_UsbDynamic
+#  2. iso.usb file has been created in ~/kickstart/$VERSION_UsbDynamic
 set -e
 if [[ $# -ne 2 ]]
   then
@@ -55,7 +55,7 @@ echo "cp initrd-nuclear.img /boot/" >> _lr_runup.sh
 
 echo "# Move the iso image so it does not get deleted during sda drive reformatting" >> _lr_runup.sh
 echo "mkdir -p /usr/local/iso" >> _lr_runup.sh
-echo "mv nm_install_3.2.1.108.iso.usb /usr/local/iso/" >> _lr_runup.sh
+echo "mv nm_install_$VERSION.iso.usb /usr/local/iso/" >> _lr_runup.sh
 
 echo "# Set up grub2 menu to do special boot operations." >> _lr_runup.sh
 echo "# First reboot: reformat sda drive, and prepare for installing CentOS 7.2 with new Network Monitor." >> _lr_runup.sh
