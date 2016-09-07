@@ -29,7 +29,9 @@ for file in *; do
       && [ "$file" != "Flow_ProtocolMismatchPort20Port21.lrl" ] \
       && [ "$file" != "Flow_ProtocolMismatchPort22.lrl" ] \
       && [ "$file" != "Flow_ProtocolMismatchPort53.lrl" ] \
-      && [ "$file" != "Flow_ProtocolMismatchPort80.lrl" ]; then
+      && [ "$file" != "Flow_ProtocolMismatchPort80.lrl" ] \
+      && [ "$file" != "Flow_ProtocolMismatchFTP.lrl" ] \
+      && [ "$file" != "Flow_ProtocolMismatchSSH.lrl" ]; then
       echo "Recovering $file"
       cp /usr/local/save/userLua/$file /usr/local/probe/userLua
    fi
