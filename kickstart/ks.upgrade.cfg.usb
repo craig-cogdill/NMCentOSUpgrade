@@ -38,6 +38,7 @@ masterProbe
 %end
 
 %pre
+# This pre script assumes the physical volumes, volume groups, and logical volumes on the sda drive have been deleted.
 
 declare -A partitions
 partIndex=0
@@ -55,79 +56,142 @@ let partIndex+=1
 volgroups[$vgIndex]="volgroup nm_root --pesize=4096 pv.607"
 let vgIndex+=1
 
-logvols[$lvIndex]="logvol swap --fstype=\"swap\" --recommended --name=swap --vgname=nm_root"
-let lvIndex+=1
-logvols[$lvIndex]="logvol / --fstype=\"ext4\" --grow --maxsize=167996 --size=100000 --label=\"root\" --name=root --vgname=nm_root"
-let lvIndex+=1
-logvols[$lvIndex]="logvol /home --fstype=\"ext4\" --size=50000 --label=\"home\" --name=home --vgname=nm_root"
-let lvIndex+=1
+# Swap, home, and root partitions depend on the size of the sda2 partition
+sda2Size512ByteBlock=`cat /sys/block/sda/sda2/size`
+sda2DriveSizeGb=`awk -v size512="$sda2Size512ByteBlock" 'BEGIN {printf "%.0f", (size512/2^21)}'`
 
-# This following code assumes the physical volumes, volume groups, and logical volumes on the sda drive have been deleted.
+function SwapDriveSize {
+   swapMaxSize=32000
+   # Default swap size is half the total memory. Divide by 1000 to convert KB to MB.
+   #let swapSizeMb=`grep MemTotal /proc/meminfo | awk 'BEGIN {print int($2/2/1000)}'`
+   # Simplified "$2/2/1000" = "$2/2000"
+   let swapSizeMb=`grep MemTotal /proc/meminfo | awk '{print int($2/2000)}'`
+   if [ $swapSizeMb -gt $swapMaxSize ]; then
+      let swapSizeMb=swapMaxSize
+   fi
+   # Limit swap to maximum 10% of drive space
+   #tenPercentRootDriveSizeMb=`awk -v sizeGb="$sda2DriveSizeGb" 'BEGIN {print int(sizeGb*1000*0.1)}'`
+   # Simplified: "sizeGb*1000*0.1" = "sizeGb*100"
+   tenPercentRootDriveSizeMb=`awk -v sizeGb="$sda2DriveSizeGb" 'BEGIN {print int(sizeGb*100)}'`
+   if [ $swapSizeMb -gt $tenPercentRootDriveSizeMb ]; then
+      let swapSizeMb=tenPercentRootDriveSizeMb 
+   fi
+   # Reduce the root drive by the size of the swap
+   let sda2DriveSizeGb=`awk -v sizeGb="$sda2DriveSizeGb" -v swapSize="$swapSizeMb" 'BEGIN {print int(sizeGb - (swapSize / 1000))}'`
+   echo swap size: $swapSizeMb
+   echo New root drive size after swap: $sda2DriveSizeGb
+   # Set the logvol for the swap partition
+   logvols[$lvIndex]="logvol swap --fstype=swap --name=swap --vgname=nm_root --size=$swapSizeMb"
+   let lvIndex+=1
+}
 
-# Discover and retain physical volumes on the sdb and sdc drives.
-foundSdc=false
-lvm pvs > /tmp/lvmpvs
-while read pvs_line; do 
-   if echo $pvs_line | grep -q \/dev\/; then
-      pvs_parts=( $pvs_line ) # parse line into array
-      drive=${pvs_parts[0]:5} # Trim off "/dev/" chars
-      partitions[$partIndex]="part pv.$pvIndex --fstype=\"lvmpv\" --noformat --onpart=$drive"
-      if echo $drive | grep -q sdc; then
-         foundSdc=true
+function HomeDriveSize {
+   homePercent=$1
+   driveSizeGb=$2
+   homeMaxSize=50000
+   let homeSizeMb=`awk -v sizeGb="$driveSizeGb" -v percent="$homePercent" 'BEGIN {print int(sizeGb * percent * 1000)}'`
+   if [ $homeSizeMb -gt $homeMaxSize ]; then
+      let homeSizeMb=homeMaxSize
+   fi
+   echo /home size: $homeSizeMb
+   logvols[$lvIndex]="logvol /home --fstype=ext4 --name=home --vgname=nm_root --size=$homeSizeMb"
+   let lvIndex+=1
+}
+
+function RootDriveSize {
+   rootPercent=$1
+   driveSizeGb=$2
+   rootMaxSize=200000
+   let rootSizeMb=`awk -v sizeGb="$driveSizeGb" -v percent="$rootPercent" 'BEGIN {print int(sizeGb * percent * 1000)}'`
+   if [ $rootSizeMb -gt $rootMaxSize ]; then
+      let rootSizeMb=rootMaxSize
+   fi
+   echo /root size: $rootSizeMb
+   logvols[$lvIndex]="logvol / --fstype=ext4 --name=root --vgname=nm_root --size=$rootSizeMb"
+   let lvIndex+=1
+}
+
+function RecoverSdbSdcPhysicalVolumes {
+   # Discover and retain physical volumes on the sdb and sdc drives.
+   foundSdc=false
+   lvm pvs > /tmp/lvmpvs
+   while read pvs_line; do 
+      if echo $pvs_line | grep -q \/dev\/; then
+         pvs_parts=( $pvs_line ) # parse line into array
+         drive=${pvs_parts[0]:5} # Trim off "/dev/" chars
+         partitions[$partIndex]="part pv.$pvIndex --fstype=\"lvmpv\" --noformat --onpart=$drive"
+         if echo $drive | grep -q sdc; then
+            foundSdc=true
+         fi
+         let partIndex+=1
+         let pvIndex+=10
       fi
-      let partIndex+=1
-      let pvIndex+=10
+   done < /tmp/lvmpvs
+   if [ $foundSdc = "true" ]; then
+      useDrives="sda,sdb,sdc"
    fi
-done < /tmp/lvmpvs
-if [ $foundSdc = "true" ]; then
-   useDrives="sda,sdb,sdc"
-fi
+}
 
-# Discover and retain volume groups on sdb and sdc drives.
-lvm vgs > /tmp/lvmvgs
-while read vgs_line; do 
-   if echo $vgs_line | grep -q vg_; then
-      vgs_parts=( $vgs_line ) # parse line into array
-      vg_name=${vgs_parts[0]}
-      volgroups[$vgIndex]="volgroup $vg_name --noformat --useexisting"
-      let vgIndex+=1
-   fi
-done < /tmp/lvmvgs
-
-# Discover and retain logical volumes on sdb and sdc drives.
-lvm lvs 2>/dev/null > /tmp/lvmlvs
-while read lvs_line; do 
-   if echo $lvs_line | grep -q vg_; then
-      lvs_parts=( $lvs_line ) # parse line into array
-      mnt_point=${lvs_parts[0]:3} # Trim off leading "lv_" chars
-      if [ $mnt_point = "pcap" ]; then
-         mnt_point="/"$mnt_point"0" # /pcap0
-      elif [ $mnt_point = "data" ]; then
-         mnt_point="/usr/local"
-      else
-         mnt_point="/"$mnt_point # /pcap0, /pcap1, /pcap2, etc.
+function RecoverSdbSdcVolumeGroups {
+   # Discover and retain volume groups on sdb and sdc drives.
+   lvm vgs > /tmp/lvmvgs
+   while read vgs_line; do 
+      if echo $vgs_line | grep -q vg_; then
+         vgs_parts=( $vgs_line ) # parse line into array
+         vg_name=${vgs_parts[0]}
+         volgroups[$vgIndex]="volgroup $vg_name --noformat --useexisting"
+         let vgIndex+=1
       fi
-      logvols[$lvIndex]="logvol $mnt_point --fstype=\"ext4\" --noformat --useexisting --name=${lvs_parts[0]} --vgname=${lvs_parts[1]}"
-      let lvIndex+=1
-   fi
-done < /tmp/lvmlvs
+   done < /tmp/lvmvgs
+}
 
-# Write the disk partitioning contents to /tmp/part-include
-echo "ignoredisk --only-use=$useDrives" > /tmp/part-include
-echo "bootloader --append=\" crashkernel=auto\" --location=mbr --boot-drive=sda" >> /tmp/part-include
-echo "clearpart --initlabel --list=sda2,sda1" >> /tmp/part-include
-echo "part /boot --fstype=\"ext4\" --size=500" >> /tmp/part-include
+function RecoverSdbSdcLogicalVolumes {
+   # Discover and retain logical volumes on sdb and sdc drives.
+   lvm lvs 2>/dev/null > /tmp/lvmlvs
+   while read lvs_line; do 
+      if echo $lvs_line | grep -q vg_; then
+         lvs_parts=( $lvs_line ) # parse line into array
+         mnt_point=${lvs_parts[0]:3} # Trim off leading "lv_" chars
+         if [ $mnt_point = "pcap" ]; then
+            mnt_point="/"$mnt_point"0" # /pcap0
+         elif [ $mnt_point = "data" ]; then
+            mnt_point="/usr/local"
+         else
+            mnt_point="/"$mnt_point # /pcap0, /pcap1, /pcap2, etc.
+         fi
+         logvols[$lvIndex]="logvol $mnt_point --fstype=\"ext4\" --noformat --useexisting --name=${lvs_parts[0]} --vgname=${lvs_parts[1]}"
+         let lvIndex+=1
+      fi
+   done < /tmp/lvmlvs
+}
 
-for prtn in ${!partitions[@]}; do
-  echo ${partitions[$prtn]} >> /tmp/part-include
-done
+function WritePartIncludeFile {
+   # Write the disk partitioning contents to /tmp/part-include
+   echo "ignoredisk --only-use=$useDrives" > /tmp/part-include
+   echo "bootloader --append=\" crashkernel=auto\" --location=mbr --boot-drive=sda" >> /tmp/part-include
+   echo "clearpart --initlabel --list=sda2,sda1" >> /tmp/part-include
+   echo "part /boot --fstype=\"ext4\" --size=500" >> /tmp/part-include
 
-for vg in ${!volgroups[@]}; do
-   echo ${volgroups[$vg]} >> /tmp/part-include
-done
+   for prtn in ${!partitions[@]}; do
+     echo ${partitions[$prtn]} >> /tmp/part-include
+   done
 
-for lv in ${!logvols[@]}; do
-   echo ${logvols[$lv]} >> /tmp/part-include
-done
+   for vg in ${!volgroups[@]}; do
+      echo ${volgroups[$vg]} >> /tmp/part-include
+   done
+
+   for lv in ${!logvols[@]}; do
+      echo ${logvols[$lv]} >> /tmp/part-include
+   done
+}
+
+# ================== Main ====================
+SwapDriveSize
+HomeDriveSize 0.25 $sda2DriveSizeGb
+RootDriveSize 0.75 $sda2DriveSizeGb
+RecoverSdbSdcPhysicalVolumes
+RecoverSdbSdcVolumeGroups
+RecoverSdbSdcLogicalVolumes
+WritePartIncludeFile
 
 %end

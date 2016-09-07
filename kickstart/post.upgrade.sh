@@ -21,10 +21,15 @@ done
 # Change owner:group for saved userLua rules.
 chown -R dpi:dpi /usr/local/save/userLua
 # Copy userLua rules which are not matching rules already in /usr/local/probe/userLua.
+# Note: Ignoring deprecated ProtocolMismatchPort rules.
 cd /usr/local/save/userLua
+echo Recovering userLua rules...
 for file in *; do
-   if [ ! -f /usr/local/probe/userLua/$file ]; then
-# TODO exclude system rules which have been deleted from NMSystemRules repo.
+   if [ ! -f /usr/local/probe/userLua/$file ] \
+      && [ "$file" != "Flow_ProtocolMismatchPort20Port21.lrl" ] \
+      && [ "$file" != "Flow_ProtocolMismatchPort22.lrl" ] \
+      && [ "$file" != "Flow_ProtocolMismatchPort53.lrl" ] \
+      && [ "$file" != "Flow_ProtocolMismatchPort80.lrl" ]; then
       echo "Recovering $file"
       cp /usr/local/save/userLua/$file /usr/local/probe/userLua
    fi
@@ -39,6 +44,9 @@ chown -R dpi:nobody /usr/local/save/apiLua/usr
 cp /usr/local/save/apiLua/usr/* /usr/local/probe/apiLua/usr/
 # Enusre the files copied to apiLua/usr get the updated dpi ownership.
 chown -R dpi:nobody /usr/local/probe/apiLua/usr
+
+# cleanup the iso file stored on /usr/local
+rm -rf /usr/local/iso
 
 %end
 
