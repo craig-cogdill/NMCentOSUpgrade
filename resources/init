@@ -165,7 +165,25 @@ getarg 'rdbreak=initqueue' && emergency_shell -n initqueue "Break before initque
 echo
 echo
 echo Nuclear Option - reformat sda drive
-sleep 3
+sleep 5
+sda2CheckCnt=0
+echo Wait for sda2 drive
+while [ ! -e /dev/sda2 ] && [ $sda2CheckCnt -le 60 ]; do
+   sda2CheckCnt=$((sda2CheckCnt+1))
+   echo $sda2CheckCnt Waiting for sda2
+   sleep 1
+done
+if [ ! -e /dev/sda2 ]; then
+   echo
+   echo
+   echo Break to shell. sda2 not found.
+   echo Upgrade can not be applied.
+   echo type \"exit\" to reboot.
+   echo
+   /bin/sh
+   # Reboot the system
+   echo b > /proc/sysrq-trigger
+fi
 # Delete any remnants of the root physical volume with its volume group and logical volumes.
 echo Delete the root physical volume
 echo

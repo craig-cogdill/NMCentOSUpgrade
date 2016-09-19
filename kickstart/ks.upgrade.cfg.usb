@@ -119,7 +119,9 @@ function RecoverSdbSdcPhysicalVolumes {
       if echo $pvs_line | grep -q \/dev\/; then
          pvs_parts=( $pvs_line ) # parse line into array
          drive=${pvs_parts[0]:5} # Trim off "/dev/" chars
-         partitions[$partIndex]="part pv.$pvIndex --fstype=\"lvmpv\" --noformat --onpart=$drive"
+         if ! echo $drive | grep -q sda; then
+            partitions[$partIndex]="part pv.$pvIndex --fstype=\"lvmpv\" --noformat --onpart=$drive"
+         fi
          if echo $drive | grep -q sdc; then
             foundSdc=true
          fi
@@ -136,7 +138,7 @@ function RecoverSdbSdcVolumeGroups {
    # Discover and retain volume groups on sdb and sdc drives.
    lvm vgs > /tmp/lvmvgs
    while read vgs_line; do 
-      if echo $vgs_line | grep -q vg_; then
+      if echo $vgs_line | grep -q vg_probe01; then
          vgs_parts=( $vgs_line ) # parse line into array
          vg_name=${vgs_parts[0]}
          volgroups[$vgIndex]="volgroup $vg_name --noformat --useexisting"
@@ -149,7 +151,7 @@ function RecoverSdbSdcLogicalVolumes {
    # Discover and retain logical volumes on sdb and sdc drives.
    lvm lvs 2>/dev/null > /tmp/lvmlvs
    while read lvs_line; do 
-      if echo $lvs_line | grep -q vg_; then
+      if echo $lvs_line | grep -q vg_probe01; then
          lvs_parts=( $lvs_line ) # parse line into array
          mnt_point=${lvs_parts[0]:3} # Trim off leading "lv_" chars
          if [ $mnt_point = "pcap" ]; then
