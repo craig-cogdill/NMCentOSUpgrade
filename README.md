@@ -186,24 +186,20 @@ It is possible to boot an iso image from a physical partition using grub2. To up
     * `gzip -c /tmp/initrd.cpio > /boot/initrd-nuclear.img`
 
 ### Data to be saved before upgrading
-  * /usr/local/probe/db/elasticsearch/data entire directory structure should be moved to /usr/local/save/data
-    * Looks like elasticsearch install leaves the data directory as is, so this doesn't need to be moved.
+During the reformatting of the sda drive in the initrd; configuration and metadata in /usr/local/probe partition is moved to a a save directory outside /usr/local/probe. The /usr/local/probe directory is deleted to ensure a clean install is completed with a new /usr/local/probe directory.<br>
+Also /usr/local/www and /usr/local/kibana* are removed; again to ensure a clean install of those components.<br>
+  * Move /usr/local/probe/db/elasticsearch/data to /usr/local/save/data
   * Move /usr/local/probe/conf/\* files to /usr/local/save/conf
   * Move /usr/local/probe/userLua/\* files to /usr/local/save/userLua
-  * Timezone setting. copy /etc/sysconfig/clock to /usr/local/save/timezone
-  * NTP settings
-  * /usr/local/probe/apiLua/usr/\* files to /usr/local/save/apiLua/usr
+  * Move /usr/local/probe/apiLua/usr/\* files to /usr/local/save/apiLua/usr
 
 
 ### Post Install steps
   * chown files that need new ownership
     * `chown -R elasticsearch:dpi /usr/local/probe/db/elasticsearch/data`
     * `chown -R dpi:dpi /pcap0`
-  * Set management interface in /etc/sysconfig/network-scripts/ifcfg-xxx to match conf/nm.yaml.Interface; restore nm.yaml.Interface to /usr/local/probe/conf
   * Restore nm.yaml settings saved in /usr/local/save/conf/nm.yaml
     * Can the entire nm.yaml file be restored?
     * pcapInterface may need to be updated to modify ethX or other non bond0 setting.
   * Restore apiLua/usr/\* files to /usr/local/probe/apiLua/usr
-  * Set system NTP configuration to match previous settings.
-  * Set timezone. In post install script use, `timedatectl set-timezone America/Denver`
 
