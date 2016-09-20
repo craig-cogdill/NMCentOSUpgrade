@@ -79,7 +79,25 @@ It is possible to boot an iso image from a physical partition using grub2. To up
     echo
     echo
     echo Nuclear Option - reformat sda drive
-    sleep 3
+    sleep 5
+    sda2CheckCnt=0
+    echo Wait for sda2 drive
+    while [ ! -e /dev/sda2 ] && [ $sda2CheckCnt -le 60 ]; do
+       sda2CheckCnt=$((sda2CheckCnt+1))
+       echo $sda2CheckCnt Waiting for sda2
+       sleep 1
+    done
+    if [ ! -e /dev/sda2 ]; then
+       echo
+       echo
+       echo Break to shell. sda2 not found.
+       echo Upgrade can not be applied.
+       echo type \"exit\" to reboot.
+       echo
+       /bin/sh
+       # Reboot the system
+       echo b > /proc/sysrq-trigger
+    fi
     # Delete any remnants of the root physical volume with its volume group and logical volumes.
     echo Delete the root physical volume
     echo
@@ -87,7 +105,7 @@ It is possible to boot an iso image from a physical partition using grub2. To up
     /sbin/lvm pvremove -ff -y /dev/sda2
     /bin/dd if=/dev/zero of=/dev/sda2 count=1k bs=16k
     sleep 1
-    
+
     # Format the sda drive with new partitions
     /sbin/sfdisk --force /dev/sda < /sdaDiskPart
     sleep 1
@@ -98,7 +116,7 @@ It is possible to boot an iso image from a physical partition using grub2. To up
     echo sda drive reformated
     echo
     echo
-    ls -lh /dev/sda\*
+    ls -lh /dev/sda*
     echo
     echo
     sleep 2
@@ -109,51 +127,46 @@ It is possible to boot an iso image from a physical partition using grub2. To up
     echo
     echo
     echo Copy iso image to new sda3 partition ...
-    echo
-    echo
     mkdir /usrlocal
     mount /dev/mapper/vg_probe01-lv_data /usrlocal
     mkdir /lrup
     mount /dev/sda3 /lrup
-    
+
     cp /usrlocal/iso/nm_install* /lrup/
-    
-    echo
-    echo
+
     echo iso image copied to sda3 partition
     echo Waiting for unmount of lrup partition.
-    echo
-    echo
     until umount /lrup
     do
        echo Waiting for unmount of lrup partition.
        sleep 1
     done
-    
+
     echo
     echo
     echo Backup configuration data to be restored after the upgrade.
     mkdir -p /usrlocal/save
-    mv /usrlocal/probe/conf /usr/local/save/
-    mv /usrlocal/probe/userLua /usr/local/save/
+    mv /usrlocal/probe/conf /usrlocal/save/
+    mv /usrlocal/probe/userLua /usrlocal/save/
     mkdir -p /usrlocal/save/apiLua
-    mv /usrlocal/probe/apiLua/usr /usr/local/save/apiLua
+    mv /usrlocal/probe/apiLua/usr /usrlocal/save/apiLua
     mkdir -p /usrlocal/save/elasticsearch
-    mv /usrlocal/probe/db/elasticsearch/data /usr/local/save/elasticsearch/
-    
+    mv /usrlocal/probe/db/elasticsearch/data /usrlocal/save/elasticsearch/
+
     # Remove all remaining remnants of CentOS 6.5 Network Monitor before upgrading
-    rm -rf /usr/local/probe/
-    rm -rf /usr/local/www/
-    rm -rf /usr/local/kibana*
-    
+    rm -rf /usrlocal/probe/
+    rm -rf /usrlocal/www/
+    rm -rf /usrlocal/kibana*
+
     echo Waiting for unmount of usrlocal partition.
     until umount /usrlocal
     do
        echo Waiting for unmount of usrlocal partition.
        sleep 1
     done
-    
+
     # The third grub boot menu option is to install from the iso file in sda3
+    echo
     echo Change grub to boot the third menu option on next boot
     mkdir /boot
     mount /dev/sda1 /boot
