@@ -59,7 +59,7 @@ if [ ! -d "$BASEINSTALL" ]
   then
     echo "${BASEINSTALL} directory not found. Cloning NMBaseInstall"
     cd $BASE
-    git clone http://lrgit/Logrhythm/NMBaseInstall.git $BASEINSTALL
+    git clone http://github.schq.secious.com/Logrhythm/NMBaseInstall.git $BASEINSTALL
     cd $BASEINSTALL
     git checkout remotes/origin/${BASEVERSION}
 fi
